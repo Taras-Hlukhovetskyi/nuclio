@@ -110,8 +110,8 @@ endif
 
 NUCLIO_PYTHON_BASE_IMAGE_NAME ?= gcr.io/iguazio/python
 
-NUCLIO_BASE_IMAGE_TAG ?= 1.21
-NUCLIO_BASE_ALPINE_IMAGE_TAG ?= 1.21-alpine
+NUCLIO_BASE_IMAGE_TAG ?= 1.23
+NUCLIO_BASE_ALPINE_IMAGE_TAG ?= 1.23-alpine
 
 #
 #  Must be first target
@@ -619,19 +619,24 @@ $(eval DOCKER_IMAGES_CACHE += $(filter-out $(DOCKER_IMAGES_CACHE),$(NUCLIO_DOCKE
 #
 
 .PHONY: fmt
-fmt:
+fmt: ensure-golangci-linter
 	gofmt -s -w .
-	golangci-lint run --fix
+	$(GOPATH)/bin/golangci-lint run --fix
 
 .PHONY: lint
-lint: modules ensure-test-files-annotated
-	@echo Installing linters...
-	@test -e $(GOPATH)/bin/golangci-lint || \
-	  	(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.54.2)
-
+lint: modules ensure-test-files-annotated ensure-golangci-linter
 	@echo Linting...
 	$(GOPATH)/bin/golangci-lint run -v
 	@echo Done.
+
+.PHONY: lint-docs
+lint-docs:
+	vale docs
+	@sort .github/styles/Nuclio/ignore.txt -o .github/styles/Nuclio/ignore.txt
+
+.PHONY: linkcheck
+linkcheck:
+	make -C docs/ linkcheck
 
 .PHONY: ensure-test-files-annotated
 ensure-test-files-annotated:
@@ -644,6 +649,12 @@ ensure-test-files-annotated:
 	fi
 	@echo "All go test files have //go:build test_X annotation"
 	@exit $(.SHELLSTATUS)
+
+.PHONY: ensure-golangci-linter
+ensure-golangci-linter:
+	@echo Ensuring linters...
+	@test -e $(GOPATH)/bin/golangci-lint || \
+		(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.63.4)
 
 #
 # Testing
