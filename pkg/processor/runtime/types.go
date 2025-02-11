@@ -21,6 +21,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/nuclio/nuclio/pkg/functionconfig"
 	"github.com/nuclio/nuclio/pkg/processor"
 	"github.com/nuclio/nuclio/pkg/processor/controlcommunication"
 
@@ -56,6 +57,7 @@ type Configuration struct {
 	TriggerKind              string
 	WorkerTerminationTimeout time.Duration
 	ControlMessageBroker     *controlcommunication.AbstractControlMessageBroker
+	Mode                     functionconfig.TriggerWorkMode
 }
 
 type ResponseWithErrors struct {

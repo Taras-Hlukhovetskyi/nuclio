@@ -27,6 +27,7 @@ import (
 
 	"github.com/nuclio/nuclio/pkg/common"
 	"github.com/nuclio/nuclio/pkg/common/status"
+	"github.com/nuclio/nuclio/pkg/functionconfig"
 	"github.com/nuclio/nuclio/pkg/processor/runtime"
 	"github.com/nuclio/nuclio/pkg/processor/runtime/rpc"
 	"github.com/nuclio/nuclio/pkg/processor/runtime/rpc/encoder"
@@ -186,6 +187,9 @@ func (py *python) getHandler() string {
 func (py *python) getWrapperScriptPath() string {
 	scriptPath := os.Getenv("NUCLIO_PYTHON_WRAPPER_PATH")
 	if len(scriptPath) == 0 {
+		if py.configuration.Mode == functionconfig.AsyncTriggerWorkMode {
+			return "/opt/nuclio/_nuclio_async_wrapper.py"
+		}
 		return "/opt/nuclio/_nuclio_wrapper.py"
 	}
 

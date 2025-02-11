@@ -237,24 +237,26 @@ func (r *AbstractRuntime) processItemAndWaitForResult(item interface{}, function
 		return nil, errors.Errorf("Processor not ready (current status: %s)", currentStatus)
 	}
 
-	connection, err := r.connectionManager.Allocate()
+	connectionInstance, err := r.connectionManager.Allocate()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to allocate connection")
 	}
-	processingResult, err := connection.ProcessEvent(item, functionLogger)
+	processingResult, err := connectionInstance.ProcessEvent(item, functionLogger)
 
 	return processingResult, err
 }
 
 func (r *AbstractRuntime) startWrapper() error {
-	connectionManagerConfiguration := &connection.ManagerConfigration{
-		Kind:                        connection.SocketAllocatorManagerKind,
-		SupportControlCommunication: r.runtime.SupportsControlCommunication(),
-		WaitForStart:                r.runtime.WaitForStart(),
-		SocketType:                  r.runtime.GetSocketType(),
-		GetEventEncoderFunc:         r.runtime.GetEventEncoder,
-		Statistics:                  r.Statistics,
-	}
+	connectionManagerConfiguration := connection.NewManagerConfigration(
+		r.runtime.SupportsControlCommunication(),
+		r.runtime.WaitForStart(),
+		r.runtime.GetSocketType(),
+		r.runtime.GetEventEncoder,
+		r.Statistics,
+		r.configuration.WorkerID,
+		r.configuration.Mode,
+	)
+
 	var err error
 	r.connectionManager, err = connection.NewConnectionManager(r.Logger, *r.configuration, connectionManagerConfiguration)
 	if err != nil {

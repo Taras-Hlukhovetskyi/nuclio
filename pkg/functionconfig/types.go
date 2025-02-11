@@ -95,10 +95,19 @@ type Trigger struct {
 	// General attributes
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 
+	Mode TriggerWorkMode `json:"mode,omitempty"`
+
 	// Deprecated: MaxWorkers is replaced by NumWorkers, and will be removed in 1.15.x
 	// TODO: remove in 1.15.x
 	MaxWorkers int `json:"maxWorkers,omitempty"`
 }
+
+type TriggerWorkMode string
+
+const (
+	SyncTriggerWorkMode  TriggerWorkMode = "sync"
+	AsyncTriggerWorkMode TriggerWorkMode = "async"
+)
 
 type BatchConfiguration struct {
 	Mode      BatchMode `json:"mode,omitempty"`
@@ -298,6 +307,7 @@ func GetDefaultHTTPTrigger() Trigger {
 		Kind:       "http",
 		Name:       "default-http",
 		NumWorkers: 1,
+		Mode:       SyncTriggerWorkMode,
 	}
 }
 

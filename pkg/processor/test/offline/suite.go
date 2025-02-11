@@ -65,15 +65,12 @@ func (suite *TestSuite) TestOffline() {
 }
 
 func (suite *TestSuite) getFunctionCreateOptions() *platform.CreateFunctionOptions {
-	options := suite.HTTPSuite.GetDeployOptions(
+	options := suite.HTTPSuite.GetDeployOptions("reverser", path.Join(
+		suite.HTTPSuite.GetTestFunctionsDir(),
+		"common",
 		"reverser",
-		path.Join(
-			suite.HTTPSuite.GetTestFunctionsDir(),
-			"common",
-			"reverser",
-			suite.HTTPSuite.GetRuntimeDir(),
-		),
-	)
+		suite.HTTPSuite.GetRuntimeDir(),
+	))
 
 	// assume offline, no images pull, etc
 	options.FunctionConfig.Spec.Build.Offline = true

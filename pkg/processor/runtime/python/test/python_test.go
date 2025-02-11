@@ -47,6 +47,7 @@ type TestSuite struct {
 	CallFunctionTestSuite callfunction.TestSuite
 	OfflineTestSuite      offline.TestSuite
 	runtime               string
+	mode                  functionconfig.TriggerWorkMode
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -460,7 +461,8 @@ func (suite *TestSuite) TestStableSDKThroughput() {
 
 func (suite *TestSuite) getEmptyFunctionCreateOptions(functionName string,
 	numWorkers int) *platform.CreateFunctionOptions {
-	createFunctionOptions := suite.GetDeployOptions(functionName,
+	createFunctionOptions := suite.getDeployOptions(
+		functionName,
 		path.Join(suite.GetTestFunctionsDir(), "common", "empty", "python"))
 	createFunctionOptions.FunctionConfig.Spec.Handler = "empty:handler"
 	createFunctionOptions.FunctionConfig.Spec.Runtime = suite.Runtime
@@ -474,22 +476,30 @@ func (suite *TestSuite) getEmptyFunctionCreateOptions(functionName string,
 	return createFunctionOptions
 }
 
+func (suite *TestSuite) getDeployOptions(functionName, functionPath string) *platform.CreateFunctionOptions {
+	if suite.mode == functionconfig.AsyncTriggerWorkMode {
+		return suite.GetDeployOptionsAsync(functionName, functionPath)
+	}
+	return suite.GetDeployOptions(functionName, functionPath)
+
+}
+
 func TestIntegrationSuite(t *testing.T) {
 	if testing.Short() {
 		return
 	}
 
-	for _, testCase := range []struct {
-		runtimeName string
-	}{
-		{runtimeName: "python:3.9"},
-		{runtimeName: "python:3.10"},
-		{runtimeName: "python:3.11"},
-	} {
-		t.Run(testCase.runtimeName, func(t *testing.T) {
-			testSuite := new(TestSuite)
-			testSuite.runtime = testCase.runtimeName
-			suite.Run(t, testSuite)
-		})
+	runtimes := []string{"python:3.9", "python:3.10", "python:3.11"}
+	modes := []functionconfig.TriggerWorkMode{functionconfig.AsyncTriggerWorkMode, functionconfig.SyncTriggerWorkMode}
+
+	for _, runtime := range runtimes {
+		for _, mode := range modes {
+			t.Run(runtime+"_"+string(mode), func(t *testing.T) {
+				testSuite := new(TestSuite)
+				testSuite.runtime = runtime
+				testSuite.mode = mode // Set the mode for the test
+				suite.Run(t, testSuite)
+			})
+		}
 	}
 }

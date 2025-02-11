@@ -128,15 +128,12 @@ func (suite *TestSuite) TestBinaryCloudEvent() {
 }
 
 func (suite *TestSuite) getCreateOptions() *platform.CreateFunctionOptions {
-	options := suite.HTTPSuite.GetDeployOptions(
+	options := suite.HTTPSuite.GetDeployOptions("event-returner", path.Join(
+		suite.HTTPSuite.GetTestFunctionsDir(),
+		"common",
 		"event-returner",
-		path.Join(
-			suite.HTTPSuite.GetTestFunctionsDir(),
-			"common",
-			"event-returner",
-			suite.HTTPSuite.GetRuntimeDir(),
-		),
-	)
+		suite.HTTPSuite.GetRuntimeDir(),
+	))
 
 	if suite.CloudEventsHandler != "" {
 		options.FunctionConfig.Spec.Handler = suite.CloudEventsHandler
